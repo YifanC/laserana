@@ -74,6 +74,7 @@ private:
     Double_t laser_exit_z;
 
     art::InputTag fTrackLabel;
+    art::InputTag fLaserLabel;
 
 }; // class GetTracks
 
@@ -126,6 +127,7 @@ void GetTracks::endJob()
 void GetTracks::reconfigure(fhicl::ParameterSet const& parameterSet)
 {
     fTrackLabel = parameterSet.get<art::InputTag>("TrackLabel");
+//    fLaserLabel = parameterSet.get<art::InputTag>("LaserLabel");
 }
 
 //-----------------------------------------------------------------------
@@ -138,7 +140,10 @@ void GetTracks::produce(art::Event& event)
     event.getByLabel(fTrackLabel, Tracks);
 
     try {
-        event.getByLabel("LaserBeam", Laser);
+        //event.getByLabel("LaserBeam", Laser);
+        //event.getByLabel("LaserDataMerger", Laser);
+        //event.getByLabel(fLaserLabel, Laser);
+        event.getByLabel("LaserDataMerger", "LaserBeam", Laser);
 
     	event_id = event.id().event();
         laser_entry_x = Laser->GetEntryPoint().x();
@@ -151,7 +156,7 @@ void GetTracks::produce(art::Event& event)
 
         fLaserTree->Fill();
     }
-    catch (...){}; // pretty dangerous, but we just ignore writing the laser tree if no laser data is present.
+    catch (...){std::cout<<"Fail in getting laser info"<<std::endl;}; // pretty dangerous, but we just ignore writing the laser tree if no laser data is present.
 
 
     //auto track = tr.fXYZ;

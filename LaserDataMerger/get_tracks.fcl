@@ -35,6 +35,7 @@ physics:
     {
         module_type:          "GetTracks"
         TrackLabel: "pandoraCosmic"
+        #LaserLabel: "LaserDataMerger"
     }
   }
 
