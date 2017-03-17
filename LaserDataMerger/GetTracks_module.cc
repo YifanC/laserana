@@ -64,6 +64,7 @@ private:
     std::vector<Double_t> trackz;
     unsigned int event_id;
     unsigned int track_id;
+    unsigned int laser_sys;
 
     Double_t laser_entry_x;
     Double_t laser_entry_y;
@@ -110,6 +111,7 @@ void GetTracks::beginRun(art::Run& run)
 
     fLaserTree = tfs->make<TTree>("Laser", "Laser");
     fLaserTree->Branch("event", &event_id);
+    fLaserTree->Branch("laser_sys", &laser_sys);
     fLaserTree->Branch("entry_x", &laser_entry_x);
     fLaserTree->Branch("entry_y", &laser_entry_y);
     fLaserTree->Branch("entry_z", &laser_entry_z);
@@ -146,6 +148,7 @@ void GetTracks::produce(art::Event& event)
         event.getByLabel("LaserDataMerger", "LaserBeam", Laser);
 
     	event_id = event.id().event();
+        laser_sys = Laser->GetLaserID();
         laser_entry_x = Laser->GetEntryPoint().x();
         laser_entry_y = Laser->GetEntryPoint().y();
         laser_entry_z = Laser->GetEntryPoint().z();
