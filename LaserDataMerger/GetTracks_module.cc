@@ -138,7 +138,7 @@ void GetTracks::produce(art::Event& event)
     event.getByLabel(fTrackLabel, Tracks);
 
     try {
-        event.getByLabel("LaserBeam", Laser);
+        event.getByLabel("LaserDataMerger","LaserBeam", Laser);
 
     	event_id = event.id().event();
         laser_entry_x = Laser->GetEntryPoint().x();
