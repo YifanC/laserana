@@ -205,6 +205,9 @@ namespace LaserReco {
         fParameterSet.YHitThreshold = parameterSet.get<float>("YHitPeakThreshold");
         fParameterSet.YAmplitudeToWidthRatio = parameterSet.get<float>("YAmplitudeToWidthRatio");
         fParameterSet.YHitWidthThreshold = parameterSet.get<int>("YHitWidthThreshold");
+ 
+        //The number of ticks (in ADC) which will be truncated
+        fParameterSet.TrunNumTicks = parameterSet.get<int>("TrunNumTicks",2400);
 
     }
 

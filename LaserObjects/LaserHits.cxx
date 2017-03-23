@@ -255,6 +255,7 @@ std::map<float, recob::Hit> lasercal::LaserHits::UPlaneHitFinder(const recob::Wi
     float Peak = -9999;
     int PeakTime = -9999;
     int HitIdx = 0;
+    int TrunNum = fParameters.TrunNumTicks;
 
     // Extract Channel ID and raw signal from Wire object
     raw::ChannelID_t Channel = SingleWire.Channel();
@@ -285,14 +286,19 @@ std::map<float, recob::Hit> lasercal::LaserHits::UPlaneHitFinder(const recob::Wi
 
             if ((fabs(Peak) / (float) (HitEnd - HitStart) > fParameters.UAmplitudeToWidthRatio ||
                  fabs(Peak) > fParameters.HighAmplitudeThreshold)
-                && HitEnd - HitStart > fParameters.UHitWidthThreshold) {
+                && HitEnd - HitStart > fParameters.UHitWidthThreshold
+                && (HitStart-TrunNum>0 && HitEnd-TrunNum>0)) {
                 // Create hit
+                //Testing std::cout<<"UPlane; HitStart: "<<HitStart-TrunNum<<"; HitEnd: "<<HitEnd-TrunNum<<std::endl;
                 auto RecoHit = recob::HitCreator(SingleWire,
                                                  fGeometry->ChannelToWire(Channel).front(),
-                                                 HitStart,
-                                                 HitEnd,
+                                                 HitStart-TrunNum,
+                                                 //HitStart,
+                                                 HitEnd-TrunNum,
+                                                 //HitEnd,
                                                  fabs(HitStart - HitEnd) / 2,
-                                                 (float) PeakTime,
+                                                 (float) PeakTime-TrunNum,
+                                                 //(float) PeakTime,
                                                  fabs(HitStart - HitEnd) / 2,
                                                  Peak,
                                                  sqrt(Peak),
@@ -338,6 +344,7 @@ std::map<float, recob::Hit> lasercal::LaserHits::VPlaneHitFinder(const recob::Wi
     int DipTime = -9999;
     float HitTime = -9999;
     int HitIdx = 0;
+    int TrunNum = fParameters.TrunNumTicks;
 
     // Set all flags to false
     bool AboveThreshold = false;
@@ -390,14 +397,19 @@ std::map<float, recob::Hit> lasercal::LaserHits::VPlaneHitFinder(const recob::Wi
                 && HitEnd - HitStart > fParameters.VHitWidthThreshold
                 && (Peak / (float) (DipTime - PeakTime) > fParameters.VAmplitudeToRMSRatio ||
                     Peak - Dip > fParameters.HighAmplitudeThreshold)
-                && DipTime - PeakTime > fParameters.VRMSThreshold) {
+                && DipTime - PeakTime > fParameters.VRMSThreshold
+                && (HitStart-TrunNum>0 && HitEnd-TrunNum>0)) {//Testing
                 // Create hit
+                //Testing std::cout<<"VPlane; HitStart: "<<HitStart-TrunNum<<"; HitEnd: "<<HitEnd-TrunNum<<std::endl;
                 auto RecoHit = recob::HitCreator(SingleWire,
                                                  fGeometry->ChannelToWire(Channel).front(),
-                                                 HitStart,
-                                                 HitEnd,
+                                                 HitStart-TrunNum,
+                                                 //HitStart,
+                                                 HitEnd-TrunNum,
+                                                 //HitEnd,
                                                  fabs(DipTime - PeakTime) / 2,
-                                                 HitTime,
+                                                 HitTime-TrunNum,
+                                                 //HitTime,
                                                  fabs(DipTime - PeakTime) / 2,
                                                  Peak - Dip,
                                                  sqrt(Peak - Dip),
@@ -443,6 +455,7 @@ std::map<float, recob::Hit> lasercal::LaserHits::YPlaneHitFinder(const recob::Wi
     float Peak = -9999;
     int PeakTime = -9999;
     int HitIdx = 0;
+    int TrunNum = fParameters.TrunNumTicks;
 
     // Extract Channel ID and raw signal from Wire object
     raw::ChannelID_t Channel = SingleWire.Channel();
@@ -472,19 +485,25 @@ std::map<float, recob::Hit> lasercal::LaserHits::YPlaneHitFinder(const recob::Wi
             AboveThreshold = false;
             if ((Peak / (float) (HitEnd - HitStart) > fParameters.YAmplitudeToWidthRatio ||
                  Peak > fParameters.HighAmplitudeThreshold)
-                && HitEnd - HitStart > fParameters.YHitWidthThreshold) {
+                && HitEnd - HitStart > fParameters.YHitWidthThreshold
+                && (HitStart-TrunNum>0 && HitEnd-TrunNum>0)) {//Testing
                 // Create hit
+                //Testing
+                //std::cout<<"YPlane; HitStart: "<<HitStart-TrunNum<<"; HitEnd: "<<HitEnd-TrunNum<<std::endl;
                 auto RecoHit = recob::HitCreator(SingleWire,
                                                  fGeometry->ChannelToWire(Channel).front(),
-                                                 HitStart,
-                                                 HitEnd,
+                                                 HitStart-TrunNum,//Fix
+                                                 //HitStart,
+                                                 HitEnd-TrunNum,//Fix
+                                                 //HitEnd,
                                                  fabs(HitStart - HitEnd) / 2,
-                                                 (float) PeakTime,
+                                                 (float) PeakTime-TrunNum,//Fix
+                                                 //(float) PeakTime,
                                                  fabs(HitStart - HitEnd) / 2,
                                                  Peak,
                                                  sqrt(Peak),
-                                                 100.,
-                                                 100.,
+                                                 100.,//random non-zero hit integral
+                                                 100.,//random non-zero hit sigma integral
                                                  1,
                                                  HitIdx,
                                                  1.,

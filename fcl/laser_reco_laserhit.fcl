@@ -108,7 +108,7 @@ physics:
  reco: [
 #         wcNoiseFilter,
         LaserDataMerger,
-         # digitfilter,
+         #digitfilter, #throw away bad channels and output raw data
          # caldata,
          # gaushit,
          laserhit,
@@ -130,6 +130,8 @@ physics:
 }
 physics.producers.laserhit.LaserRecoModuleLabel: "daq"
 physics.producers.laserhit.UseROI: false
+#Truncate the ADC samples
+physics.producers.laserhit.TrunNumTicks: 2400
 # physics.producers.laserhit.UseCalData: true
 # physics.producers.laserhit.CalDataTag: "caldata"
 

@@ -34,6 +34,9 @@ namespace lasercal {
         int VHitWidthThreshold;
         int YHitWidthThreshold;
 
+        // Truncated ADC samples before trigger 
+        int TrunNumTicks;
+
         // Special V-plane hit cuts
         int VRMSThreshold;
         float VAmplitudeToRMSRatio;
