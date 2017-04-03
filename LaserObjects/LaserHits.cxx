@@ -286,19 +286,15 @@ std::map<float, recob::Hit> lasercal::LaserHits::UPlaneHitFinder(const recob::Wi
 
             if ((fabs(Peak) / (float) (HitEnd - HitStart) > fParameters.UAmplitudeToWidthRatio ||
                  fabs(Peak) > fParameters.HighAmplitudeThreshold)
-                && HitEnd - HitStart > fParameters.UHitWidthThreshold
-                && (HitStart-TrunNum>0 && HitEnd-TrunNum>0)) {
+                && HitEnd - HitStart > fParameters.UHitWidthThreshold){
+                //&& (HitStart-TrunNum>0 && HitEnd-TrunNum>0)) {
                 // Create hit
-                //Testing std::cout<<"UPlane; HitStart: "<<HitStart-TrunNum<<"; HitEnd: "<<HitEnd-TrunNum<<std::endl;
                 auto RecoHit = recob::HitCreator(SingleWire,
                                                  fGeometry->ChannelToWire(Channel).front(),
-                                                 HitStart-TrunNum,
-                                                 //HitStart,
-                                                 HitEnd-TrunNum,
-                                                 //HitEnd,
+                                                 HitStart,//HitStart-TrunNum,
+                                                 HitEnd,//HitEnd-TrunNum,
                                                  fabs(HitStart - HitEnd) / 2,
-                                                 (float) PeakTime-TrunNum,
-                                                 //(float) PeakTime,
+                                                 (float) PeakTime,//(float) PeakTime-TrunNum,
                                                  fabs(HitStart - HitEnd) / 2,
                                                  Peak,
                                                  sqrt(Peak),
@@ -397,19 +393,15 @@ std::map<float, recob::Hit> lasercal::LaserHits::VPlaneHitFinder(const recob::Wi
                 && HitEnd - HitStart > fParameters.VHitWidthThreshold
                 && (Peak / (float) (DipTime - PeakTime) > fParameters.VAmplitudeToRMSRatio ||
                     Peak - Dip > fParameters.HighAmplitudeThreshold)
-                && DipTime - PeakTime > fParameters.VRMSThreshold
-                && (HitStart-TrunNum>0 && HitEnd-TrunNum>0)) {//Testing
+                && DipTime - PeakTime > fParameters.VRMSThreshold){
+//                && (HitStart-TrunNum>0 && HitEnd-TrunNum>0)) {//Testing
                 // Create hit
-                //Testing std::cout<<"VPlane; HitStart: "<<HitStart-TrunNum<<"; HitEnd: "<<HitEnd-TrunNum<<std::endl;
                 auto RecoHit = recob::HitCreator(SingleWire,
                                                  fGeometry->ChannelToWire(Channel).front(),
-                                                 HitStart-TrunNum,
-                                                 //HitStart,
-                                                 HitEnd-TrunNum,
-                                                 //HitEnd,
+                                                 HitStart,//HitStart-TrunNum,
+                                                 HitEnd,//HitEnd-TrunNum,
                                                  fabs(DipTime - PeakTime) / 2,
-                                                 HitTime-TrunNum,
-                                                 //HitTime,
+                                                 HitTime,//HitTime-TrunNum,
                                                  fabs(DipTime - PeakTime) / 2,
                                                  Peak - Dip,
                                                  sqrt(Peak - Dip),
@@ -485,20 +477,15 @@ std::map<float, recob::Hit> lasercal::LaserHits::YPlaneHitFinder(const recob::Wi
             AboveThreshold = false;
             if ((Peak / (float) (HitEnd - HitStart) > fParameters.YAmplitudeToWidthRatio ||
                  Peak > fParameters.HighAmplitudeThreshold)
-                && HitEnd - HitStart > fParameters.YHitWidthThreshold
-                && (HitStart-TrunNum>0 && HitEnd-TrunNum>0)) {//Testing
+                && HitEnd - HitStart > fParameters.YHitWidthThreshold){
+                // && (HitStart-TrunNum>0 && HitEnd-TrunNum>0)) {
                 // Create hit
-                //Testing
-                //std::cout<<"YPlane; HitStart: "<<HitStart-TrunNum<<"; HitEnd: "<<HitEnd-TrunNum<<std::endl;
                 auto RecoHit = recob::HitCreator(SingleWire,
                                                  fGeometry->ChannelToWire(Channel).front(),
-                                                 HitStart-TrunNum,//Fix
-                                                 //HitStart,
-                                                 HitEnd-TrunNum,//Fix
-                                                 //HitEnd,
+                                                 HitStart,//HitStart-TrunNum
+                                                 HitEnd,//HitEnd-TrunNum,
                                                  fabs(HitStart - HitEnd) / 2,
-                                                 (float) PeakTime-TrunNum,//Fix
-                                                 //(float) PeakTime,
+                                                 (float) PeakTime,//(float) PeakTime-TrunNum,
                                                  fabs(HitStart - HitEnd) / 2,
                                                  Peak,
                                                  sqrt(Peak),
