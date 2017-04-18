@@ -108,7 +108,7 @@ physics:
  reco: [
 #         wcNoiseFilter,
         LaserDataMerger,
-#        digitfilter, #throw away bad channels and output raw data
+        digitfilter, #throw away bad channels and output raw data
          # caldata,
          # gaushit,
          laserhit,
@@ -128,7 +128,7 @@ physics:
  stream1:   [ out1 ]
  end_paths: [ stream1 ]
 }
-physics.producers.laserhit.LaserRecoModuleLabel: "daq" #"digitfilter" 
+physics.producers.laserhit.LaserRecoModuleLabel: "digitfilter" #"daq"
 physics.producers.laserhit.UseROI: false
 #Truncate the ADC samples
 physics.producers.laserhit.TrunNumTicks: 2400
@@ -166,7 +166,7 @@ services.SignalShapingServiceMicroBooNE.FilterWidthCorrectionFactor:    [ 1.0, 1
 #physics.producers.wcNoiseFilter.WindowSize:                             9600
 
 physics.producers.digitfilter.ProcessNoise:                            true
-physics.producers.digitfilter.TruncateTicks:                           true
+physics.producers.digitfilter.TruncateTicks:                           false
 physics.producers.digitfilter.RMSRejectionCutHi:                       [1000., 1000., 1000.]
 
 physics.producers.caldata.DigitModuleLabel:                            "digitfilter"
