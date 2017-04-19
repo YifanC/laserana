@@ -69,6 +69,8 @@
 #include <utility>
 #include <memory>
 #include <iterator>
+#include <iostream>
+#include <algorithm>
 
 #include <fstream>
 #include <boost/tokenizer.hpp>
@@ -105,12 +107,13 @@ namespace LaserDataMerger {
 
         // All this goes into the root tree
         TTree *fTimeAnalysis;
-        unsigned int fEvent;
+        int fEvent;
         unsigned int time_s;
         unsigned int time_ms;
 
         std::map<Long64_t, unsigned int> timemap; ///< Key value: index of event, corresponding index in laser data file
         std::vector<std::vector<double> > laser_values; ///< line by line csv container
+        double MaxTimeDelta = 0.1;
 
         bool fReadTimeMap = false;
         bool fGenerateTimeInfo = false;
@@ -184,12 +187,12 @@ namespace LaserDataMerger {
 
         art::ServiceHandle<art::TFileService> tfs;
         RunNumber = run.run();
-
+/*
         // read the timemap root file (generated in python)
-        std::string TimemapFile = "TimeMap-" + std::to_string(RunNumber) + ".root";
-        std::cout << "READING TIMEMAP FILE: " << TimemapFile << std::endl;
-        TFile *InputFile = new TFile(TimemapFile.c_str(), "READ");
-        TTree *tree = (TTree *) InputFile->Get("tree");
+        //std::string TimemapFile = "TimeMap-" + std::to_string(RunNumber) + ".root";
+        //std::cout << "READING TIMEMAP FILE: " << TimemapFile << std::endl;
+        //TFile *InputFile = new TFile(TimemapFile.c_str(), "READ");
+        //TTree *tree = (TTree *) InputFile->Get("tree");
 
         unsigned int map_root;
         tree->SetBranchAddress("map", &map_root);
@@ -206,7 +209,7 @@ namespace LaserDataMerger {
         }
         delete InputFile;
 
-
+*/
         // read the laser data file into a vector
         std::string LaserFile = "Run-" + std::to_string(RunNumber) + ".txt";
         std::fstream file(LaserFile, std::ios::in);
@@ -222,7 +225,7 @@ namespace LaserDataMerger {
 
                 for (Tokenizer::iterator it = info.begin(); it != info.end(); ++it) {
                     // convert data into double value, and store
-                    values.push_back(std::strtof(it->c_str(), 0));
+                    values.push_back(std::strtod(it->c_str(), 0));
                 }
 
                 // store array of values
@@ -230,7 +233,7 @@ namespace LaserDataMerger {
 
                 if (fDebug) {
                     for (unsigned int idx = 0; idx < 15; idx++) {
-                        //std::cout << laser_values.back().at(idx) << " ";
+                        //std::cout << std::fixed<<laser_values.back().at(idx) << " ";
                     }
                     //std::cout << std::endl;
                 }
@@ -278,28 +281,48 @@ namespace LaserDataMerger {
 //-----------------------------------------------------------------------
 
     void LaserDataMerger::produce(art::Event &event) {
-        fEvent = (unsigned int) event.id().event();
-
-        uint laser_id = timemap.at(fEvent);
+        fEvent = (int) event.id().event();
+        int laser_id = -9999;
         std::unique_ptr<lasercal::LaserBeam> LaserAA(new lasercal::LaserBeam());
+      
+        if(laser_values[0][8]<0){laser_id=0;}//If the laser direction does not change, set event number to -1 (manually).
+        else{       
+          unsigned int EvtTimeS = event.time().timeHigh();
+          unsigned int EvtTimeNS = event.time().timeLow();
+          double daq_event_time = EvtTimeS + EvtTimeNS * 1E-9;//ns
+          double laser_event_time = -9999;
 
-        if (laser_id == std::numeric_limits<uint>::max()) {
-            if (fDebug) std::cout << "Skipping event: " << fEvent << std::endl;
-            std::cout << "Skipping event: " << fEvent << std::endl;
+    
+          int search_start = std::max(-fEvent,-20);
+          int tempDiff = laser_values.back()[8]-fEvent;
+          int search_end = std::min(tempDiff,200);
+          double max_laser_time = laser_values.back()[6] + laser_values.back()[7] * 1E-6;
+          if(daq_event_time>max_laser_time){
+	    std::cout<<"Laser Information is missing. Stoped"<<std::endl;
+	    return;
+	  }
 
-            lasercal::LaserBeam Laser(TVector3(-1000, -1000, -1000), -1000, -1000);
-            Laser.SetLaserID(9999);
+          for(int j=search_start;j<search_end;j++){
+            laser_event_time = laser_values[fEvent+j][6] + laser_values[fEvent+j][7] * 1E-6;//us
+            //match the laser time and daq time
+            if(TMath::Abs(laser_event_time - daq_event_time) < MaxTimeDelta){
+              std::cout<<std::fixed<<"laser: "<<laser_event_time<<"; daq: "<<daq_event_time<<"; Diff: "<<(double)TMath::Abs(laser_event_time - daq_event_time)<<std::endl;
+              laser_id = fEvent+j;
+              break;
+            }
+            if(j==search_end-1){
+              std::cout<<"Could not find corresponding laser event time for daq event "<<fEvent<<". Something went wrong!"<<std::endl;
 
-            *LaserAA = Laser;
-            event.put(std::move(LaserAA), "LaserBeam");
-            return;
-        }
-        if (fDebug) std::cout << "Event idx: " << fEvent << " Laser idx: " << laser_id << std::endl;
+              lasercal::LaserBeam Laser(TVector3(-1000, -1000, -1000), -1000, -1000);
+              Laser.SetLaserID(9999);
 
-        //auto LaserAA = std::make_unique<lasercal::LaserBeam>;
-        // This is just for convinience, the TVector2 holds only the two angles
-
-        double Theta;
+              *LaserAA = Laser;
+              event.put(std::move(LaserAA), "LaserBeam");
+              return;
+            }
+          }
+        }         
+	double Theta;
         double Phi;
 
         double Theta_raw = laser_values.at(laser_id).at(DataStructure::LinearPosition);
@@ -310,11 +333,11 @@ namespace LaserDataMerger {
 
         if (LCS_ID == 1) { // The downstream laser system (sitting at z = -20)
             Theta = TMath::DegToRad() * (90.0 - LinearRawToAngle(Theta_raw - fDirCalLCS1[1]));
-            Phi = TMath::DegToRad() * Phi_raw - fDirCalLCS1[0];
+            Phi = TMath::DegToRad() * (Phi_raw - fDirCalLCS1[0]);
             Position = PositionLCS1;
         } else if (LCS_ID == 2) { // The upstream laser system (sitting at z = 1020)
-            Theta = TMath::DegToRad() * (90.0 - LinearRawToAngle(Theta_raw - fDirCalLCS2[1]));
-            Phi = -TMath::DegToRad() * (Phi_raw - fDirCalLCS2[0]);
+            Theta = TMath::DegToRad() * (LinearRawToAngle(Theta_raw) - 266.60208631 + 60 + 1.161  - 2*0.68) ;
+            Phi = -TMath::DegToRad() * (180 + (Phi_raw - fDirCalLCS2[0]));
             Position = PositionLCS2;
         } else {
             std::cerr << "Laser System not recognized " << std::endl;
