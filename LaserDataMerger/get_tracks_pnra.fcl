@@ -34,8 +34,7 @@ physics:
     GetTracks:
     {
         module_type:          "GetTracks"
-
-        TrackLabel:           "pandoraCosmic"
+        TrackLabel: "pandoraCosmic"
     }
   }
 
